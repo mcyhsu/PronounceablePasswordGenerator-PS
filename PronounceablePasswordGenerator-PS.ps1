@@ -15,8 +15,11 @@ for ($j = 0; $j -lt $passwordsToGenerate; $j++) {
         } else {
             $char = $vowels[$random.Next(0, $vowels.Length)]
         }
+        if ($random.Next(0, 2) -eq 1) { # 50/50 chance of random capitalization
+            $char = $char.ToUpper()
+        }
         $pronounceablePassword += $char
-        $lastCharWasVowel = $char -in $vowels # If the last character was a vowel, the next one should be a consonant and vice versa
+        $lastCharWasVowel = $char.ToLower() -in $vowels # If the last character was a vowel, the next one should be a consonant and vice versa
     }
     $passwordList += $pronounceablePassword
 }
