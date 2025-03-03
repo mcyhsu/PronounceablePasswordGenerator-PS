@@ -79,6 +79,15 @@ if($pronounceablePassword.Length -gt $length) {
     $pronounceablePassword = $pronounceablePassword.Substring(0, $length)
 }
 
+# Capitalizes random characters in the password
+$charArray = $pronounceablePassword.ToCharArray()
+for($i = 0; $i -lt $charArray.Length; $i++) {
+    if($random.NextDouble() -lt 0.5) {
+        $charArray[$i] = $charArray[$i].ToString().ToUpper() # Need to convert char to string in order to use ToUpper()
+    }
+    $pronounceablePassword = -join $charArray
+}
+
 $pronounceablePassword
 
 <# TO DO:
