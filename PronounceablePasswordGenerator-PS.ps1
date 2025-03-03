@@ -1,12 +1,12 @@
-$vowels = @("a", "e", "i", "o", "u", "y")
-$consonants = @("b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "w", "x", "y", "z")
+$vowels = @("a", "e", "i", "o", "u", "y", "a", "e", "i") # Duplicates intentional
+$consonants = @("b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "v", "w", "z", "b", "d", "l", "n", "r", "s", "t") # Duplicates intentional
 $random = New-Object System.Random
 $passwordList = @()
 
 ### Configuration ###
-$passwordLength = 8
+$passwordLength = 12
 $passwordsToGenerate = 10
-$capitalizationChance = 0.5 # The range is between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
+$capitalizationChance = 0.2 # The range is between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
 ### Configuration ###
 
 
@@ -20,7 +20,7 @@ for ($j = 0; $j -lt $passwordsToGenerate; $j++) {
             $char = $vowels[$random.Next(0, $vowels.Length)]
         }
 
-        if ($random.NextDouble() -lt $capitalizationChance) { # Currently set to 50% chance of capitalizing the character
+        if ($random.NextDouble() -lt $capitalizationChance) {
             $char = $char.ToUpper()
         }
         $pronounceablePassword += $char
