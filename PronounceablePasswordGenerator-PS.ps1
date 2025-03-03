@@ -1,4 +1,4 @@
-function generateLetterPassword() {
+function New-LetterPassword() {
     param (
         [int]$passwordLength = 8,
         [int]$passwordsToGenerate = 10,
@@ -32,6 +32,6 @@ function generateLetterPassword() {
     $passwordList
 }
 
-generateLetterPassword
+New-LetterPassword -passwordLength 20 -passwordsToGenerate 10 -capitalizationChance 0.2
 
 
