@@ -1,12 +1,10 @@
-$random = New-Object System.Random
-
 function New-LetterPassword() {
     param (
         [int]$length = 8,
         [int]$passwordsToGenerate = 10,
         [double]$capitalizationChance = 0.2 # The range should be between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
     )
-
+    $random = New-Object System.Random
     $vowels = @("a", "e", "i", "o", "u", "y", "a", "e", "i") # Duplicates intentional
     $consonants = @("b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "v", "w", "z", "b", "d", "l", "n", "r", "s", "t") # Duplicates intentional
     $passwordList = @()
@@ -75,7 +73,8 @@ function New-SyllablePassword {
         "tan", "tel", "van", "zan", "zor"
     )
     $vowels = @("a", "e", "i", "o", "u", "y")
-    
+    $random = New-Object System.Random
+    $passwordList = @()
 
     for($j = 0; $j -lt $passwordsToGenerate; $j++) {
         $pronounceablePassword = ""
@@ -122,9 +121,9 @@ function New-SyllablePassword {
             if($random.NextDouble() -lt $capitalizationChance) {
                 $charArray[$i] = $charArray[$i].ToString().ToUpper() # Need to convert char to string in order to use ToUpper()
             }
-            $pronounceablePassword = -join $charArray
         }
-        
+        $pronounceablePassword = -join $charArray
+
         # Checks if there is at least 1 capital letter in the password
         $containsCapital = $false
         $charArray = $pronounceablePassword.ToCharArray()
@@ -141,11 +140,10 @@ function New-SyllablePassword {
             $randomChar = $random.Next(0, $charArray.Length)
             $charArray[$randomChar] = $charArray[$randomChar].ToString().ToUpper()
             $pronounceablePassword = -join $charArray
-        }
-        
-        $pronounceablePassword
+        }   
+        $passwordList += $pronounceablePassword
     }
-    
+    $passwordList
 }
 
 New-SyllablePassword
