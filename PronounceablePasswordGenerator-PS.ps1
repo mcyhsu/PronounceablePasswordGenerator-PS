@@ -35,11 +35,41 @@ function New-LetterPassword() {
 
 
 
-$cvChunks = @("ba", "be", "bo", "da", "de", "do", "fa", "fe", "fi", "ka", "ke", "ko", "la", "le", "lo", "ma", "me", "mo", "pa", "pe", "po", "ta", "te", "to")
-$vcChunks = @("an", "ar", "el", "en", "im", "on", "ul", "um", "in", "ir", "or", "ur")
-$cvcChunks = @("bat", "bel", "dam", "far", "kel", "lom", "man", "pan", "tel", "vor", "zan")
+$cvChunks = @(
+    "ba", "be", "bi", "bo", "bu",
+    "ca", "ce", "co", "cu",
+    "da", "de", "di", "do", "du",
+    "fa", "fe", "fi", "fo", "fu",
+    "ga", "ge", "gi", "go", "gu",
+    "ja", "je", "jo", "ju",
+    "ka", "ke", "ki", "ko", "ku",
+    "la", "le", "li", "lo", "lu",
+    "ma", "me", "mi", "mo", "mu",
+    "na", "ne", "ni", "no", "nu",
+    "pa", "pe", "pi", "po", "pu",
+    "ra", "re", "ri", "ro", "ru",
+    "sa", "se", "si", "so", "su",
+    "ta", "te", "ti", "to", "tu",
+    "va", "ve", "vo",
+    "wa", "we", "wi", "wo",
+    "za", "ze", "zi", "zo"
+)
+$vcChunks = @(
+    "am", "ar", "as", "an", "al",
+    "el", "em", "en", "er", "es",
+    "il", "in", "ir", "is", "im",
+    "on", "or", "os", "om", "ol",
+    "um", "un", "ur", "us", "ul"
+)
+$cvcChunks = @(
+    "bat", "ben", "cat", "dar", "dom",
+    "fan", "fen", "gam", "gon", "lam",
+    "man", "mat", "nan", "nor", "pal",
+    "pan", "ran", "ren", "sam", "sen",
+    "tan", "tel", "van", "zan", "zor"
+)
 $vowels = @("a", "e", "i", "o", "u", "y")
-$length = 12
+$length = 8
 
 $pronounceablePassword = ""
 $initialChunkRoll = $random.NextDouble()
@@ -82,19 +112,29 @@ if($pronounceablePassword.Length -gt $length) {
 # Capitalizes random characters in the password
 $charArray = $pronounceablePassword.ToCharArray()
 for($i = 0; $i -lt $charArray.Length; $i++) {
-    if($random.NextDouble() -lt 0.5) {
+    if($random.NextDouble() -lt 0.15) { # Only 15% of the time there will be capitalization
         $charArray[$i] = $charArray[$i].ToString().ToUpper() # Need to convert char to string in order to use ToUpper()
     }
     $pronounceablePassword = -join $charArray
 }
 
+# Checks if there is at least 1 capital letter in the password
+$containsCapital = $false
+$charArray = $pronounceablePassword.ToCharArray()
+foreach($char in $charArray) {
+    if($char -ceq $char.ToString().ToUpper()) {
+        $containsCapital = $true
+        break
+    }
+}
+
+# If there aren't any capital letters, then randomly capitalize a letter in the password
+if($containsCapital -eq $false) {
+    $charArray = $pronounceablePassword.ToCharArray()
+    $randomChar = $random.Next(0, $charArray.Length)
+    $charArray[$randomChar] = $charArray[$randomChar].ToUpper()
+    $pronounceablePassword = -join $charArray
+}
+
 $pronounceablePassword
-
-<# TO DO:
-- Add random capitalization
-- Expand the array to include more interesting combinations of vowels and consonants
-- Turn the syllable chunk generator into a function
-
-#>
-
 
