@@ -1,42 +1,10 @@
-function New-LetterPassword() {
-    param (
-        [int]$length = 8,
-        [int]$passwordsToGenerate = 10,
-        [double]$capitalizationChance = 0.2 # The range should be between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
-    )
-    $random = New-Object System.Random
-    $vowels = @("a", "e", "i", "o", "u", "y", "a", "e", "i") # Duplicates intentional
-    $consonants = @("b", "c", "d", "f", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "v", "w", "z", "b", "d", "l", "n", "r", "s", "t") # Duplicates intentional
-    $passwordList = @()
-
-    for ($j = 0; $j -lt $passwordsToGenerate; $j++) {
-        $pronounceablePassword = ""
-        $lastCharWasVowel = $false # Start with a consonant
-        for ($i = 0; $i -lt $length; $i++) {
-            if ($lastCharWasVowel) {
-                $char = $consonants[$random.Next(0, $consonants.Length)]
-            } else {
-                $char = $vowels[$random.Next(0, $vowels.Length)]
-            }
-    
-            if ($random.NextDouble() -lt $capitalizationChance) { # NextDouble returns a number between 0 and 1, e.g. 0.5 means 50% chance
-                $char = $char.ToUpper()
-            }
-            $pronounceablePassword += $char
-            $lowerChar = $char.ToLower()
-            $lastCharWasVowel = $lowerChar -in $vowels # If the last character was a vowel, the next one should be a consonant and vice versa
-        }
-        $passwordList += $pronounceablePassword
-    }
-    $passwordList
-}
-
-
-function New-SyllablePassword {
+function New-PronounceAblePassword {
     param(
         [int]$length = 8,
         [int]$passwordsToGenerate = 10,
-        [double]$capitalizationChance = 0.15 # The range should be between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
+        [double]$capitalizationChance = 0.15, # The range should be between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
+        [bool]$includeNumbers = $false,
+        [bool]$includeSymbols = $false
     )
 
     $cvChunks = @(
@@ -73,6 +41,9 @@ function New-SyllablePassword {
         "tan", "tel", "van", "zan", "zor"
     )
     $vowels = @("a", "e", "i", "o", "u", "y")
+    $numbers = @("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+    $symbols = @("!", "@", "#", "$", "%", "&", "*", "-", "_")
+
     $random = New-Object System.Random
     $passwordList = @()
 
@@ -95,17 +66,27 @@ function New-SyllablePassword {
         do {
             $nextChunkRoll = $random.NextDouble()
             if($pronounceablePassword[-1] -in $vowels) { # If the chunk ends in a vowel, the next chunk starts with a consonant
-                if($nextChunkRoll -lt 0.5) {
+                if($nextChunkRoll -lt 0.5) { # Roll to decide which array that starts with consonants to pick from
                     $pronounceablePassword += $cvChunks[$random.Next(0, $cvChunks.Length)]
                 } else {
                     $pronounceablePassword += $cvcChunks[$random.Next(0, $cvcChunks.Length)]
                 }
             } else { # If the chunk ends in a consonant, the next chunk starts with a vowel
-                if($nextChunkRoll -lt 0.5) {
+                if($nextChunkRoll -lt 0.5) { # Roll to decide which array that starts with vowels to pick from
                     $pronounceablePassword += $vcChunks[$random.Next(0, $vcChunks.Length)]
                 } else {
                     $pronounceablePassword += $vowels[$random.Next(0, $vowels.Length)]
                 }
+            }
+
+            # If numbers or symbols are included, randomly add them at the end of each chunk
+            $symAndNumRoll = $random.NextDouble()
+            if($includeNumbers -and $symAndNumRoll -lt 0.5) {
+                $pronounceablePassword += $numbers[$random.Next(0, $numbers.Length)]
+            } elseif($includeSymbols -and $symAndNumRoll -lt 0.75) {
+                $pronounceablePassword += $symbols[$random.Next(0, $symbols.Length)]
+            } else {
+                # Occasionally don't add a number or symbol
             }
         
         } while ($pronounceablePassword.Length -lt $length)
@@ -130,20 +111,47 @@ function New-SyllablePassword {
         foreach($char in $charArray) {
             if($char -ceq $char.ToString().ToUpper()) {
                 $containsCapital = $true
-                break
+                break # Exit the loop as soon as a capital letter is discovered, as that requirement is satisfied
             }
         }
         
+        # If $includeNumbers is true and there aren't any numbers in the password, then randomly add a number
+        if($includeNumbers -and $pronounceablePassword.IndexOfAny($numbers) -eq -1) {
+            $charArray = $pronounceablePassword.ToCharArray()
+            $randomChar = $random.Next(0, $charArray.Length)
+            $charArray[$randomChar] = $numbers[$random.Next(0, $numbers.Length)]
+            $pronounceablePassword = -join $charArray
+        }
+
+        # If $includeSymbols is true and there aren't any symbols in the password, then randomly add a symbol
+        if($includeSymbols -and $pronounceablePassword.IndexOfAny($symbols) -eq -1) {
+            $charArray = $pronounceablePassword.ToCharArray()
+            $randomChar = $random.Next(0, $charArray.Length)
+
+            # Keep rolling to ensure the randomly selected character is not a number before replacing it with a symbol
+            do {
+                $randomChar = $random.Next(0, $charArray.Length)
+            } while ($charArray[$randomChar] -in $numbers)
+
+            $charArray[$randomChar] = $symbols[$random.Next(0, $symbols.Length)]
+            $pronounceablePassword = -join $charArray
+        }
+
         # If there aren't any capital letters, then randomly capitalize a letter in the password
         if($containsCapital -eq $false) {
             $charArray = $pronounceablePassword.ToCharArray()
             $randomChar = $random.Next(0, $charArray.Length)
+
+            # Keep rolling to ensure the randomly selected character is not a number or symbol before capitalizing it
+            do {
+                $randomChar = $random.Next(0, $charArray.Length)
+            } while ($charArray[$randomChar] -in $numbers -or $charArray[$randomChar] -in $symbols)
+            
             $charArray[$randomChar] = $charArray[$randomChar].ToString().ToUpper()
             $pronounceablePassword = -join $charArray
+            
         }   
         $passwordList += $pronounceablePassword
     }
     $passwordList
 }
-
-New-SyllablePassword
