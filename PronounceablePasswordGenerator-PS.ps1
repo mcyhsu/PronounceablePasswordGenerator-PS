@@ -1,32 +1,3 @@
-function Get-Entropy {
-    param(
-        [string]$Password
-    )
-
-    $charSet = 0
-
-    if ($Password -cmatch "[a-z]") {
-        $charSet += 26 # Lowercase letters
-    }
-    if ($Password -cmatch "[A-Z]") {
-        $charSet += 26 # Uppercase letters
-    }
-    if ($Password -cmatch "\d") {
-        $charSet += 10 # Numbers 0-9
-    }
-    if ($Password -cmatch "[!@#\$%&\*\-_]") {
-        $charSet += 9 # Number of symbols in your symbols array
-    }
-
-    if ($charSet -eq 0) {
-        return "Cannot calculate entropy (no character types detected)"
-    }
-
-    # Entropy formula: log2(charSet ^ passwordLength)
-    $entropy = [math]::Log([math]::Pow($charSet, $Password.Length), 2)
-    return [math]::Round($entropy, 2)
-}
-
 function New-PronounceablePassword {
     param(
         [int]$length = 8,
@@ -36,9 +7,9 @@ function New-PronounceablePassword {
         [bool]$includeSymbols = $false
     )
 
-    $cvChunks = @(
+    $cvChunks = @( # Follows consonant-vowel pattern (with an exception for 'y')
         "ba", "be", "bi", "bo", "bu",
-        "ca", "ce", "co", "cu",
+        "ca", "ce", "co", "cu", "cy",
         "da", "de", "di", "do", "du",
         "fa", "fe", "fi", "fo", "fu",
         "ga", "ge", "gi", "go", "gu",
@@ -51,18 +22,18 @@ function New-PronounceablePassword {
         "ra", "re", "ri", "ro", "ru",
         "sa", "se", "si", "so", "su",
         "ta", "te", "ti", "to", "tu",
-        "va", "ve", "vo",
-        "wa", "we", "wi", "wo",
-        "za", "ze", "zi", "zo"
+        "va", "ve", "vo", "vy", "ty",
+        "wa", "we", "wi", "wo", "wy",
+        "za", "ze", "zi", "zo", "zy"
     )
-    $vcChunks = @(
+    $vcChunks = @( # Follows vowel-consonant pattern
         "am", "ar", "as", "an", "al",
         "el", "em", "en", "er", "es",
         "il", "in", "ir", "is", "im",
         "on", "or", "os", "om", "ol",
         "um", "un", "ur", "us", "ul"
     )
-    $cvcChunks = @(
+    $cvcChunks = @( # Follows consonant-vowel-consonant pattern
         "bat", "ben", "cat", "dar", "dom",
         "fan", "fen", "gam", "gon", "lam",
         "man", "mat", "nan", "nor", "pal",
@@ -79,6 +50,7 @@ function New-PronounceablePassword {
     for($j = 0; $j -lt $passwordsToGenerate; $j++) {
         $pronounceablePassword = ""
         $initialChunkRoll = $random.NextDouble()
+        $protectedChars = @() # Array to store the indexes of the characters that are protected from being replaced (Capital letters, numbers, symbols)
         
         # Deciding initial chunk
         if($initialChunkRoll -lt 0.25) {
@@ -108,14 +80,19 @@ function New-PronounceablePassword {
                 }
             }
 
-            # If numbers or symbols are included, randomly add them at the end of each chunk
+
+            # If numbers or symbols are included, roll for a chance to add them at the end of each chunk
             $symAndNumRoll = $random.NextDouble()
-            if($includeNumbers -and $symAndNumRoll -lt 0.5) {
-                $pronounceablePassword += $numbers[$random.Next(0, $numbers.Length)]
-            } elseif($includeSymbols -and $symAndNumRoll -lt 0.75) {
-                $pronounceablePassword += $symbols[$random.Next(0, $symbols.Length)]
+            if($includeNumbers -and $symAndNumRoll -lt 0.5) { # Chance to add a number
+                $randomNum = $random.Next(0, $numbers.Length)
+                $pronounceablePassword += $numbers[$randomNum]
+                $protectedChars += $pronounceablePassword.Length - 1 # This will add the newly added number to the $protectedChars array
+            } elseif($includeSymbols -and $symAndNumRoll -lt 0.75) { # Chance to add a symbol
+                $randomNum = $random.Next(0, $symbols.Length)
+                $pronounceablePassword += $symbols[$randomNum]
+                $protectedChars += $pronounceablePassword.Length - 1 # This will add the newly added symbol to the $protectedChars array
             } else {
-                # Occasionally don't add a number or symbol
+                # Occasionally don't add a number or symbol, this code block intentionally left blank
             }
         
         } while ($pronounceablePassword.Length -lt $length)
@@ -128,13 +105,13 @@ function New-PronounceablePassword {
         # Capitalizes random characters in the password
         $charArray = $pronounceablePassword.ToCharArray()
         for($i = 0; $i -lt $charArray.Length; $i++) {
-            if($random.NextDouble() -lt $capitalizationChance) { # There is a chance that no characters will be capitalized here
-                $charArray[$i] = $charArray[$i].ToString().ToUpper() # Need to convert char to string in order to use ToUpper()
+            if($random.NextDouble() -lt $capitalizationChance -and $i -notin $protectedChars) { # There is a chance that no characters will be capitalized here
+                if($charArray[$i] -notin ($numbers + $symbols)) { # Makes sure the char at index $i is a letter
+                    $charArray[$i] = $charArray[$i].ToString().ToUpper() # Need to convert char to string in order to use ToUpper()
+                }
             }
         }
         $pronounceablePassword = -join $charArray
-
-        $protectedChars = @() # Array to store the indexes of the characters that are protected from being replaced (Capital letters, numbers, symbols)
 
         # Checks if there is at least 1 capital letter in the password
         $containsCapital = $false
@@ -154,33 +131,32 @@ function New-PronounceablePassword {
                 $randomChar = $random.Next(0, $charArray.Length)
             } while ($protectedChars -contains $randomChar) # Keep rolling to ensure the randomly selected character to be replaced with a number is not a capital letter
             
-            $protectedChars += $randomChar # Add the index of the number to the protectedChars array, it will be protected from being replaced with a symbol
             $charArray[$randomChar] = $numbers[$random.Next(0, $numbers.Length)]
+            $protectedChars += $randomChar # Add the index of the number to the protectedChars array, it will be protected from being replaced with a symbol
             $pronounceablePassword = -join $charArray
         }
 
         # If $includeSymbols is true and there aren't any symbols in the password, then randomly add a symbol
         if($includeSymbols -and $pronounceablePassword.IndexOfAny($symbols) -eq -1) {
             $charArray = $pronounceablePassword.ToCharArray()
-            $randomChar = $random.Next(0, $charArray.Length)
             do {
                 $randomChar = $random.Next(0, $charArray.Length)
             } while ($protectedChars -contains $randomChar) # Keep rolling to ensure the randomly selected character is not a number or capital letter before replacing it with a symbol
-            
-            $protectedChars += $randomChar # Add the index of the symbol to the protectedChars array, it will be protected from being replaced with a capital letter
+
             $charArray[$randomChar] = $symbols[$random.Next(0, $symbols.Length)]
+            $protectedChars += $randomChar # Add the index of the symbol to the protectedChars array, it will be protected from being replaced with a capital letter
             $pronounceablePassword = -join $charArray
         }
 
         # If there aren't any capital letters, then randomly capitalize a letter in the password
         if($containsCapital -eq $false) {
             $charArray = $pronounceablePassword.ToCharArray()
-            $randomChar = $random.Next(0, $charArray.Length)
             do {
                 $randomChar = $random.Next(0, $charArray.Length)
             } while ($protectedChars -contains $randomChar) # Keep rolling to ensure the randomly selected character is not a number or symbol before capitalizing it
             
             $charArray[$randomChar] = $charArray[$randomChar].ToString().ToUpper()
+            $protectedChars += $randomChar # Add the index of the capital letter to the protectedChars array
             $pronounceablePassword = -join $charArray
         }   
         $passwordList += $pronounceablePassword
@@ -188,5 +164,26 @@ function New-PronounceablePassword {
     $passwordList
 }
 
-$password = New-PronounceablePassword -passwordsToGenerate 10 -length 20 -includeNumbers $true -includeSymbols $true
-$password
+
+
+# Debugging
+$debugging = $true
+
+if($debugging -eq $true) {
+    $passwords = New-PronounceablePassword -passwordsToGenerate 1000 -length 10 -includeNumbers $true -includeSymbols $true
+    $passwords
+
+    foreach($password in $passwords) {
+        $containsCapital = $false
+        $charArray = $password.ToCharArray()
+        foreach($char in $charArray) {
+            if($char -cmatch "[A-Z]") {
+                $containsCapital = $true
+            }
+        }
+    
+        if($containsCapital -eq $false) {
+            Write-Host "This password $password does not contain any capitals"
+        }
+    }
+}
