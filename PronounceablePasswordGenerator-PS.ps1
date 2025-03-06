@@ -118,7 +118,7 @@ function New-PronounceablePassword {
         $charArray = $pronounceablePassword.ToCharArray()
         foreach($char in $charArray) {
             if($char -cmatch "[A-Z]") {
-                $containsCapital = $true
+                $containsCapital =  $true
                 $protectedChars += $charArray.IndexOf($char) # Add the index of the capital letter to the protectedChars array
             }
         }
@@ -165,7 +165,7 @@ function New-PronounceablePassword {
     if($includeNumbers -eq $true -and $includeSymbols -eq $false) {
         Write-Host " with numbers included:"  -ForegroundColor Yellow
     }
-    elseif($includeSymbols -eq $tru -and $includeNumbers -eq $false) {
+    elseif($includeSymbols -eq $true -and $includeNumbers -eq $false) {
         Write-Host " with symbols included:"  -ForegroundColor Yellow
     } else {
         Write-Host " with numbers and symbols included:"  -ForegroundColor Yellow
@@ -181,34 +181,37 @@ function New-PronounceablePassword {
         } else {
             $color = "Blue"
         }
-        Write-Host "$counter. ".PadLeft($padding) -NoNewline -ForegroundColor $color
+                Write-Host "$counter. ".PadLeft($padding) -NoNewline -ForegroundColor $color
         Write-Host "$password" -ForegroundColor $color
         $counter++
     }
-    #$passwordList
+
+    # Prompt the user to select which password(s) they would like to use
+    $validInput = $false
+    do {
+        $userSelection = Read-Host "Which password(s) would you like to use? Type the corresponding number to copy it to the clipboard, type 'all' to copy them all, or type 'cancel' to exit"
+
+        if($userSelection -eq "cancel") { # Exit the script
+            break
+        } elseif($userSelection -eq "all") { # Checks if the user selected "all"
+            Set-Clipboard $($passwordList -join "`n")
+            Write-Host "Copied all passwords to the clipboard." -ForegroundColor "Green"
+            $validInput = $true
+        } elseif (-not ($userSelection -as [int])) { # Checks that the user entered an integer
+            Write-Host "Invalid input. " -ForegroundColor "Red" -NoNewLine
+            Write-Host "Please enter an integer (no decimals) or copy all passwords by typing 'all'." -ForegroundColor "Yellow"
+        } elseif(-not ($userSelection -gt 0 -and $userSelection -le $passwordsToGenerate)) { # Checks that the number is within the target range
+            Write-Host "Invalid input. " -ForegroundColor "Red" -NoNewLine
+            Write-Host "Please enter a number within the range of 1 - $passwordsToGenerate" -ForegroundColor "Yellow"
+        } else { # The user entered a valid integer within the target range
+            $userSelectedPassword = $passwordList[$userSelection - 1] # Needs to be -1, since the actual index starts at 0 instead of 1
+            Set-Clipboard $userSelectedPassword
+            Write-Host "Copied password $userSelectedPassword to the clipboard. Try pasting it." -ForegroundColor "Green"
+            $validInput = $true
+        }
+    } while ($validInput -eq $false)
+
 }
 
 $passwords = New-PronounceablePassword -passwordsToGenerate 10 -length 10 -includeNumbers $true -includeSymbols $true
 $passwords
-
-# Debugging
-$debugging = $false
-
-if($debugging -eq $true) {
-    $passwords = New-PronounceablePassword -passwordsToGenerate 1000 -length 10 -includeNumbers $true -includeSymbols $true
-    $passwords
-
-    foreach($password in $passwords) {
-        $containsCapital = $false
-        $charArray = $password.ToCharArray()
-        foreach($char in $charArray) {
-            if($char -cmatch "[A-Z]") {
-                $containsCapital = $true
-            }
-        }
-    
-        if($containsCapital -eq $false) {
-            Write-Host "This password $password does not contain any capitals"
-        }
-    }
-}
