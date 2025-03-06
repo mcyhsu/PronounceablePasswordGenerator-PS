@@ -161,13 +161,38 @@ function New-PronounceablePassword {
         }   
         $passwordList += $pronounceablePassword
     }
-    $passwordList
+    Write-Host "Generating $passwordsToGenerate passwords" -NoNewline -ForegroundColor Yellow
+    if($includeNumbers -eq $true -and $includeSymbols -eq $false) {
+        Write-Host " with numbers included:"  -ForegroundColor Yellow
+    }
+    elseif($includeSymbols -eq $tru -and $includeNumbers -eq $false) {
+        Write-Host " with symbols included:"  -ForegroundColor Yellow
+    } else {
+        Write-Host " with numbers and symbols included:"  -ForegroundColor Yellow
+    }
+
+    # Add the index number of each password before printing it out
+    $counter = 1
+    $padding = $counter.Length + $passwordList.Length.toString().Length + 1
+    $color = "Blue"
+    foreach($password in $passwordList) {
+        if($counter % 2 -eq 0) {
+            $color = "Green"
+        } else {
+            $color = "Blue"
+        }
+        Write-Host "$counter. ".PadLeft($padding) -NoNewline -ForegroundColor $color
+        Write-Host "$password" -ForegroundColor $color
+        $counter++
+    }
+    #$passwordList
 }
 
-
+$passwords = New-PronounceablePassword -passwordsToGenerate 10 -length 10 -includeNumbers $true -includeSymbols $true
+$passwords
 
 # Debugging
-$debugging = $true
+$debugging = $false
 
 if($debugging -eq $true) {
     $passwords = New-PronounceablePassword -passwordsToGenerate 1000 -length 10 -includeNumbers $true -includeSymbols $true
