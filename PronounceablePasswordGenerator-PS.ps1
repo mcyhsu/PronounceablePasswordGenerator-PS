@@ -190,28 +190,24 @@ function New-PronounceablePassword {
     $validInput = $false
     do {
         $userSelection = Read-Host "Which password(s) would you like to use? Type the corresponding number to copy it to the clipboard, type 'all' to copy them all, or type 'cancel' to exit"
-
-        if($userSelection -eq "cancel") { # Exit the script
+    
+        if ($userSelection -eq "cancel") {
             break
-        } elseif($userSelection -eq "all") { # Checks if the user selected "all"
-            Set-Clipboard $($passwordList -join "`n")
+        } elseif ($userSelection -eq "all") {
+            Set-Clipboard ($passwordList -join "`n")
             Write-Host "Copied all passwords to the clipboard." -ForegroundColor "Green"
             $validInput = $true
-        } elseif (-not ($userSelection -as [int])) { # Checks that the user entered an integer
-            Write-Host "Invalid input. " -ForegroundColor "Red" -NoNewLine
-            Write-Host "Please enter an integer (no decimals) or copy all passwords by typing 'all'." -ForegroundColor "Yellow"
-        } elseif(-not ($userSelection -gt 0 -and $userSelection -le $passwordsToGenerate)) { # Checks that the number is within the target range
-            Write-Host "Invalid input. " -ForegroundColor "Red" -NoNewLine
-            Write-Host "Please enter a number within the range of 1 - $passwordsToGenerate" -ForegroundColor "Yellow"
-        } else { # The user entered a valid integer within the target range
-            $userSelectedPassword = $passwordList[$userSelection - 1] # Needs to be -1, since the actual index starts at 0 instead of 1
+        } elseif ($userSelection -match '^\d+$' -and [int]$userSelection -ge 1 -and [int]$userSelection -le $passwordsToGenerate) { # Checks that the $userSelection  is a positive integer within the target range
+            $userSelectedPassword = $passwordList[[int]$userSelection - 1]
             Set-Clipboard $userSelectedPassword
             Write-Host "Copied password $userSelectedPassword to the clipboard. Try pasting it." -ForegroundColor "Green"
             $validInput = $true
+        } else {
+            Write-Host "Invalid input. " -ForegroundColor "Red" -NoNewLine
+            Write-Host "Please enter a number between 1 and $passwordsToGenerate, type 'all', or 'cancel' to exit." -ForegroundColor "Yellow"
         }
-    } while ($validInput -eq $false)
+    } while (-not $validInput)
 
 }
 
-$passwords = New-PronounceablePassword -passwordsToGenerate 10 -length 10 -includeNumbers $true -includeSymbols $true
-$passwords
+New-PronounceablePassword -passwordsToGenerate 10 -length 10 -includeNumbers $true -includeSymbols $true
