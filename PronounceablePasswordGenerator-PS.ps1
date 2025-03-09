@@ -7,7 +7,7 @@ function New-PronounceablePassword {
         [bool]$includeSymbols = $false
     )
 
-    $cvChunks = @( # Follows consonant-vowel pattern (with an exception for 'y')
+    $cvChunks = @(
         "ba", "be", "bi", "bo", "bu",
         "ca", "ce", "co", "cu", "cy",
         "da", "de", "di", "do", "du",
@@ -40,7 +40,7 @@ function New-PronounceablePassword {
         "pan", "ran", "ren", "sam", "sen",
         "tan", "tel", "van", "zan", "zor"
     )
-    $vowels = @('a','a','a','e','e','e','e','i','i','o','o','u','y') # Duplicates intentional
+    $vowels = @('a','a','a','e','e','e','e','i','i','o','o','u') # Duplicates intentional
     $numbers = @("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
     $symbols = @("!", "@", "#", "$", "%", "&", "*", "-", "_")
 
@@ -87,7 +87,6 @@ function New-PronounceablePassword {
                     $pronounceablePassword += $vowels[$random.Next(0, $vowels.Length)]
                 }
             }
-
 
             # If user wants numbers and/or symbols included, roll for a chance to add them at the end of each chunk
             # Even if this roll fails, there is a check later to add at least 1 symbol and/or number
@@ -219,4 +218,4 @@ function New-PronounceablePassword {
 
 }
 
-New-PronounceablePassword -passwordsToGenerate 69
+New-PronounceablePassword -passwordsToGenerate 20 -passwordLength 10
