@@ -40,7 +40,7 @@ function New-PronounceablePassword {
         "pan", "ran", "ren", "sam", "sen",
         "tan", "tel", "van", "zan", "zor"
     )
-    $vowels = @("a", "e", "i", "o", "u", "y")
+    $vowels = @('a','a','a','e','e','e','e','i','i','o','o','u','y') # Duplicates intentional
     $numbers = @("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
     $symbols = @("!", "@", "#", "$", "%", "&", "*", "-", "_")
 
@@ -81,7 +81,8 @@ function New-PronounceablePassword {
             }
 
 
-            # If numbers or symbols are included, roll for a chance to add them at the end of each chunk
+            # If user wants numbers and/or symbols included, roll for a chance to add them at the end of each chunk
+            # Even if this roll fails, there is a check later to add at least 1 symbol and/or number
             $symAndNumRoll = $random.NextDouble()
             if($includeNumbers -and $symAndNumRoll -lt 0.5) { # Chance to add a number
                 $randomNum = $random.Next(0, $numbers.Length)
@@ -210,4 +211,7 @@ function New-PronounceablePassword {
 
 }
 
-New-PronounceablePassword -passwordsToGenerate 10 -length 10 -includeNumbers $true -includeSymbols $true
+New-PronounceablePassword -passwordsToGenerate 100 -length 10
+
+
+# Improve code logic so that it generates better, more pronounceable passwords
