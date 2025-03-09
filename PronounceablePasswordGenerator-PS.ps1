@@ -66,14 +66,23 @@ function New-PronounceablePassword {
         # Keep adding chunks until the target password length is reached or exceeded, default is 8
         do {
             $nextChunkRoll = $random.NextDouble()
+
+            if($pronounceablePassword[-1] -in $vowels) { # Chance to randomly double the vowel at the end of a chunk, e.g. "a" > "aa" or "o" > "oo"
+                $vowelDoubleChance = $random.NextDouble()
+                Write-Host "The chance to double the vowel is $vowelDoubleChance"
+                if($vowelDoubleChance -lt 0.3) {
+                    $pronounceablePassword += $pronounceablePassword[-1]
+                }
+            }
+
             if($pronounceablePassword[-1] -in $vowels) { # If the chunk ends in a vowel, the next chunk starts with a consonant
-                if($nextChunkRoll -lt 0.5) { # Roll to decide which array that starts with consonants to pick from
+                if($nextChunkRoll -lt 0.5) { # Roll to decide which consonant array to pick from
                     $pronounceablePassword += $cvChunks[$random.Next(0, $cvChunks.Length)]
                 } else {
                     $pronounceablePassword += $cvcChunks[$random.Next(0, $cvcChunks.Length)]
                 }
             } else { # If the chunk ends in a consonant, the next chunk starts with a vowel
-                if($nextChunkRoll -lt 0.5) { # Roll to decide which array that starts with vowels to pick from
+                if($nextChunkRoll -lt 0.5) { # Roll to decide which vowel array to pick from
                     $pronounceablePassword += $vcChunks[$random.Next(0, $vcChunks.Length)]
                 } else {
                     $pronounceablePassword += $vowels[$random.Next(0, $vowels.Length)]
@@ -212,6 +221,3 @@ function New-PronounceablePassword {
 }
 
 New-PronounceablePassword -passwordsToGenerate 100 -length 10
-
-
-# Improve code logic so that it generates better, more pronounceable passwords
