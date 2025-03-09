@@ -169,14 +169,17 @@ function New-PronounceablePassword {
         }   
         $passwordList += $pronounceablePassword
     }
-    Write-Host "Generating $passwordsToGenerate passwords" -NoNewline -ForegroundColor Yellow
-    if($includeNumbers -eq $true -and $includeSymbols -eq $false) {
-        Write-Host " with numbers included:"  -ForegroundColor Yellow
+    if($includeNumbers -eq $false -and $includeSymbols -eq $false) {
+        Write-Host "Generating $passwordsToGenerate passwords of length $($length):" -ForegroundColor Yellow
+    } 
+    elseif($includeNumbers -eq $true -and $includeSymbols -eq $false) {
+        Write-Host "Generating $passwordsToGenerate passwords of length $($length) with numbers included:"  -ForegroundColor Yellow
     }
     elseif($includeSymbols -eq $true -and $includeNumbers -eq $false) {
-        Write-Host " with symbols included:"  -ForegroundColor Yellow
-    } else {
-        Write-Host " with numbers and symbols included:"  -ForegroundColor Yellow
+        Write-Host "Generating $passwordsToGenerate passwords of length $($length) with symbols included:" -ForegroundColor Yellow
+    } 
+    elseif($includeNumbers -eq $true -and $includeSymbols -eq $true) {
+        Write-Host "Generating $passwordsToGenerate passwords of length $($length) with numbers and symbols included:" -ForegroundColor Yellow
     }
 
     # Add the index number of each password before printing it out
@@ -218,4 +221,4 @@ function New-PronounceablePassword {
 
 }
 
-New-PronounceablePassword -passwordsToGenerate 20 -passwordLength 10
+New-PronounceablePassword -passwordsToGenerate 20 -includeSymbols $true -includeNumbers $true -length 15
