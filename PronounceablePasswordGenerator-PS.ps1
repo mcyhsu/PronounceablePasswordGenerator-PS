@@ -198,7 +198,7 @@ function New-PronounceablePassword {
     # Prompt the user to select which password(s) they would like to use
     $validInput = $false
     do {
-        $userSelection = Read-Host "Which password(s) would you like to use? [1-$($pronounceablePassword.Length)]/all/cancel"
+        $userSelection = Read-Host "Which password(s) would you like to use? [1-$($passwordsToGenerate)]/all/cancel"
     
         if ($userSelection -eq "cancel") {
             break
@@ -219,4 +219,4 @@ function New-PronounceablePassword {
 
 }
 
-New-PronounceablePassword
+New-PronounceablePassword -passwordsToGenerate 69
