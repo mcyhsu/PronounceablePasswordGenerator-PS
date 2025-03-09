@@ -15,6 +15,8 @@ By default, it will do the following if no parameters are entered:
 
 The script will then prompt you to **copy a single password to the clipboard**, **copy all passwords to the clipboard**, or **cancel**.
 
+![](https://github.com/mcyhsu/PronounceablePasswordGenerator-PS/blob/main/Assets/default.png?raw=true)
+
 ## Optional Parameters
 **-passwordsToGenerate \<int\>**
 ```
@@ -45,6 +47,8 @@ New-PronounceablePassword -passwordsToGenerate 20 -length 10
 ```
 This will generate 20 passwords, each 10 letters in length, with 15% capitalization chance by default.
 
+![](https://github.com/mcyhsu/PronounceablePasswordGenerator-PS/blob/main/Assets/example1.png?raw=true)
+
 ### Example 2:
 
 ```
@@ -52,9 +56,13 @@ New-PronounceablePassword -passwordsToGenerate 20 -length 10 -includeSymbols $tr
 ```
 The same as before, but now at least 1 symbol is added.
 
+![](https://github.com/mcyhsu/PronounceablePasswordGenerator-PS/blob/main/Assets/example2.png?raw=true)
+
 ### Example 3:
 ```
-New-PronounceablePassword -passwordsToGenerate 20 -length 20 -includeSymbols $true -includeNumbers -capitalizationChance 0.5
+New-PronounceablePassword -passwordsToGenerate 20 -length 20 -includeSymbols $true -includeNumbers $true -capitalizationChance 0.5
 ```
 This will generate 20 highly secure passwords, each one 20 characters in length, with numbers and symbols randomly added, and a 50% chance of capitalizing any letter.
  The password is not likely to be pronounceable.
+ 
+ ![](https://github.com/mcyhsu/PronounceablePasswordGenerator-PS/blob/main/Assets/example3.png?raw=true)
