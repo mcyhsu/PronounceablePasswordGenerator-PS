@@ -1,6 +1,6 @@
 function New-PronounceablePassword {
     param(
-        [int]$length = 8,
+        [int]$length = 10,
         [int]$passwordsToGenerate = 10,
         [double]$capitalizationChance = 0.15, # The range should be between 0 and 1, 0.5 means 50% chance of capitalizing the character, 0.2 means 20% chance, etc.
         [bool]$includeNumbers = $false,
@@ -69,7 +69,6 @@ function New-PronounceablePassword {
 
             if($pronounceablePassword[-1] -in $vowels) { # Chance to randomly double the vowel at the end of a chunk, e.g. "a" > "aa" or "o" > "oo"
                 $vowelDoubleChance = $random.NextDouble()
-                Write-Host "The chance to double the vowel is $vowelDoubleChance"
                 if($vowelDoubleChance -lt 0.3) {
                     $pronounceablePassword += $pronounceablePassword[-1]
                 }
@@ -199,7 +198,7 @@ function New-PronounceablePassword {
     # Prompt the user to select which password(s) they would like to use
     $validInput = $false
     do {
-        $userSelection = Read-Host "Which password(s) would you like to use? Type the corresponding number to copy it to the clipboard, type 'all' to copy them all, or type 'cancel' to exit"
+        $userSelection = Read-Host "Which password(s) would you like to use? [1-$($pronounceablePassword.Length)]/all/cancel"
     
         if ($userSelection -eq "cancel") {
             break
@@ -220,4 +219,4 @@ function New-PronounceablePassword {
 
 }
 
-New-PronounceablePassword -passwordsToGenerate 100 -length 10
+New-PronounceablePassword
